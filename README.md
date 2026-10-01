@@ -6,8 +6,8 @@ A modern, animated redesign of the [Tulas International School](https://tis.edu.
 
 ## 🚀 Live Demo
 
-- **Live URL:** *(Deploy to Vercel and insert link here)*
-- **Repository:** [https://github.com/moresandip/TIS-Homepage-Redesign.git](https://github.com/moresandip/TIS-Homepage-Redesign.git)
+- **Live URL:** [https://tis-homepage-redesign-self.vercel.app/](https://tis-homepage-redesign-self.vercel.app/)
+- **Repository:** [https://github.com/moresandip/tis-homepage-redesign.git](https://github.com/moresandip/tis-homepage-redesign.git)
 
 ---
 
