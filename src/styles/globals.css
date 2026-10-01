@@ -1,0 +1,103 @@
+/* ============================================================
+   src/styles/globals.css
+   ============================================================
+   Global CSS styles for the TIS Homepage Redesign.
+   
+   NOTE: Google Fonts is loaded via <link> in src/app/layout.tsx
+   (not here) to avoid PostCSS @import ordering restrictions.
+   ============================================================ */
+
+/* Tailwind CSS layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---- CSS Custom Properties (Design Tokens) ---- */
+/* Using :root so these are globally available and easily themedable */
+:root {
+  /* TIS Brand Colors */
+  --color-tis-red: #b90124;
+  --color-tis-teal: #60bab1;
+  --color-tis-gold: #c09d59;
+  --color-tis-dark: #131313;
+
+  /* Typography scale */
+  --font-body: "Inter", system-ui, sans-serif;
+
+  /* Spacing / radius */
+  --radius-card: 1.5rem;  /* 24px */
+}
+
+/* ---- Base Styles ---- */
+@layer base {
+  /* Smooth scrolling when clicking anchor links (e.g., #about) */
+  html {
+    scroll-behavior: smooth;
+    /* Tell the browser we're using our custom cursor 
+       (the actual cursor: none is set below only on desktop) */
+  }
+
+  body {
+    font-family: var(--font-body);
+    /* Prevent horizontal scroll caused by wide animations */
+    overflow-x: hidden;
+    /* Slight background for light mode */
+    @apply bg-white text-gray-900;
+    /* Dark mode: dark background, light text */
+    @apply dark:bg-tis-dark dark:text-white;
+  }
+
+  /* Smooth transitions when switching dark/light mode */
+  *, *::before, *::after {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+}
+
+/* ---- Hide native cursor on desktop (for custom cursor feature) ---- */
+/* pointer: fine = mouse users (desktop) — hide native cursor       */
+/* pointer: coarse = touch users (mobile) — keep native cursor      */
+@media (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+}
+
+/* ---- Scroll Progress Bar ---- */
+/* Extra safety: makes sure nothing appears above the progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+/* ---- Glassmorphism Utility ---- */
+/* Used by the navbar when scrolled */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ---- Text Selection Color ---- */
+/* Matches TIS brand — makes selection look premium */
+::selection {
+  background-color: #b90124;
+  color: white;
+}
+
+/* ---- Scrollbar Styling (Webkit browsers: Chrome, Safari, Edge) ---- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #b90124;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #c09d59;
+}
