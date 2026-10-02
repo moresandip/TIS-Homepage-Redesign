@@ -36,26 +36,18 @@ export default function SectionWrapper({
   noPadding = false,
 }: SectionWrapperProps) {
   return (
-    // motion.section = a regular <section> element with Framer Motion powers
     <motion.section
       id={id}
-      // Scroll-triggered reveal animation (Feature B implementation base)
-      initial={{ opacity: 0, y: 40 }}       // Start: invisible, 40px below
-      whileInView={{ opacity: 1, y: 0 }}    // End: visible, in normal position
-      viewport={{ once: true, margin: "-80px" }} // Trigger 80px before visible
-      transition={{
-        duration: 0.5,    // 0.5s matches the 0.3–0.6s rule from the brief
-        ease: "easeOut",  // Ease out = fast start, slow finish (natural feel)
-      }}
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
       className={`
-        ${noPadding ? "" : "py-16 md:py-24"}
+        ${noPadding ? "" : "py-20 md:py-28"}
         ${className}
       `}
     >
-      {/* Inner div centers content and limits max width on large screens */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {children}
-      </div>
+      {children}
     </motion.section>
   );
 }

@@ -1,155 +1,237 @@
 // ============================================================
 // src/components/sections/HeroSection.tsx
 // ============================================================
-// The first thing visitors see — critical for conversion.
+// UNIQUE DESIGN: Asymmetric split layout
+//   LEFT  → Big bold typography + CTAs
+//   RIGHT → Animated rotating ring with stats + glowing orb
 //
-// Design decisions:
-//   - Full-screen height (100vh) to make maximum impact
-//   - Dark gradient overlay so white text stays readable over any image
-//   - Two CTAs: primary (Apply Now) and secondary (Learn More)
-//   - Animated text entrance (fade + slide up, staggered)
-//   - Floating badge showing key stat (CBSE Affiliated)
-//   - Scroll-down indicator arrow at the bottom
-//
-// The background uses a CSS gradient that matches TIS's deep navy/red
-// aesthetic since we can't use their proprietary images.
+// Key techniques:
+//   - Diagonal clip-path divides background into two colors
+//   - Animated "orbit ring" around a central stat number
+//   - Typewriter-style word cycling for the tagline
+//   - Large decorative text behind the heading (z-index trick)
 // ============================================================
 
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowDown, Star } from "lucide-react";
-import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
+import { motion, useAnimationFrame } from "framer-motion";
+import { useState, useRef } from "react";
+import { ArrowRight, MapPin, Award, Users } from "lucide-react";
 import { CONTACT } from "@/data/siteData";
 
-// Animation variant objects — defined outside component to avoid re-creation
-// on every render (performance best practice)
-const containerVariants = {
-  hidden: {},  // Container itself doesn't animate — it just orchestrates children
-  visible: {
-    transition: {
-      // staggerChildren: each child starts animating 0.15s after the previous
-      staggerChildren: 0.15,
-      delayChildren: 0.3,  // Wait 0.3s before starting the stagger sequence
-    },
-  },
-};
+// Words that cycle in the hero headline
+const CYCLING_WORDS = ["Curiosity", "Excellence", "Character", "Purpose"];
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },   // Start: invisible, 30px below
-  visible: {
-    opacity: 1,
-    y: 0,                           // End: visible, normal position
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};
+// Orbit dots that circle the hero stat ring
+const ORBIT_ITEMS = [
+  { icon: Award, label: "CBSE", angle: 0 },
+  { icon: MapPin, label: "Dehradun", angle: 120 },
+  { icon: Users, label: "Co-Ed", angle: 240 },
+];
 
 export default function HeroSection() {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [isChanging, setIsChanging] = useState(false);
+
+  // Cycle the word every 2.5 seconds with a fade transition
+  const timerRef = useRef(0);
+  useAnimationFrame((t) => {
+    if (t - timerRef.current > 2500) {
+      timerRef.current = t;
+      setIsChanging(true);
+      setTimeout(() => {
+        setWordIndex((prev) => (prev + 1) % CYCLING_WORDS.length);
+        setIsChanging(false);
+      }, 300);
+    }
+  });
+
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex items-center overflow-hidden bg-[#0a0a0f]"
     >
-      {/* ---- Background: Animated Gradient ---- */}
-      {/* In production, replace this with a <video> or <Image> of the campus */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-tis-dark to-red-950">
-        {/* Decorative blurred orbs for visual depth */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-tis-red/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-tis-teal/15 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-tis-gold/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "4s" }} />
+      {/* ---- Background Grid Pattern ---- */}
+      {/* Fine dot grid gives a "tech/premium" feel */}
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, #60bab1 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      {/* ---- Diagonal Color Block ---- */}
+      {/* Right side of the hero has a deep red background using clip-path */}
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-tis-red/80 to-red-950"
+        style={{ clipPath: "polygon(58% 0, 100% 0, 100% 100%, 45% 100%)" }}
+      />
+
+      {/* ---- Large Decorative Letter ---- */}
+      {/* Giant "T" behind the content — adds visual depth */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 text-[30rem] font-black text-white/[0.02] leading-none select-none pointer-events-none">
+        T
       </div>
 
-      {/* ---- Content Layer ---- */}
-      {/* motion.div with variants orchestrates the staggered child animations */}
-      <motion.div
-        className="relative z-10 text-center px-4 max-w-5xl mx-auto"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Badge above headline */}
-        <motion.div variants={itemVariants} className="flex justify-center mb-6">
-          <Badge color="teal">
-            <Star size={10} className="mr-1" />
-            CBSE Affiliated · Est. 2012 · Dehradun
-          </Badge>
+      {/* ---- Main Content Grid ---- */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-12 items-center py-24">
+
+        {/* ═══ LEFT COLUMN: Text Content ═══ */}
+        <motion.div
+          initial={{ opacity: 0, x: -60 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          {/* Top label */}
+          <motion.div
+            className="flex items-center gap-3 mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="h-px w-12 bg-tis-teal" />
+            <span className="text-tis-teal text-sm font-semibold tracking-[0.2em] uppercase">
+              Est. 2012 · Dehradun
+            </span>
+          </motion.div>
+
+          {/* Main headline with cycling word */}
+          <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.05] mb-6">
+            Building
+            <br />
+            {/* Cycling word with fade animation */}
+            <span
+              className="inline-block transition-all duration-300 text-transparent bg-clip-text bg-gradient-to-r from-tis-gold to-tis-teal"
+              style={{ opacity: isChanging ? 0 : 1, transform: isChanging ? "translateY(10px)" : "translateY(0)" }}
+            >
+              {CYCLING_WORDS[wordIndex]}
+            </span>
+            <br />
+            <span className="text-white/40 font-light italic text-4xl md:text-6xl">
+              with Tulas
+            </span>
+          </h1>
+
+          {/* Description */}
+          <p className="text-gray-400 text-lg leading-relaxed max-w-lg mb-10">
+            A CBSE co-ed boarding school in the heart of Dehradun —
+            where students from{" "}
+            <span className="text-white font-medium">Class IV to XII</span>{" "}
+            discover who they are and who they want to become.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap gap-4">
+            <motion.a
+              href={CONTACT.admissionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              id="hero-apply-btn"
+              className="group flex items-center gap-3 bg-tis-red hover:bg-red-600 text-white px-8 py-4 rounded-full font-bold text-sm transition-all duration-300"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Apply for Admission
+              <motion.span
+                className="inline-block"
+                animate={{ x: [0, 4, 0] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <ArrowRight size={16} />
+              </motion.span>
+            </motion.a>
+
+            <motion.a
+              href="#about"
+              id="hero-explore-btn"
+              className="flex items-center gap-2 border border-white/20 text-white hover:border-tis-teal hover:text-tis-teal px-8 py-4 rounded-full font-semibold text-sm transition-all duration-300"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Explore Campus
+            </motion.a>
+          </div>
         </motion.div>
 
-        {/* Main headline — the "Let's do it with Tulas" brand tagline */}
-        <motion.h1
-          variants={itemVariants}
-          className="text-5xl sm:text-6xl md:text-8xl font-black text-white leading-none mb-4"
-        >
-          Let&apos;s do{" "}
-          <span className="italic font-light text-tis-gold">it</span>
-          <br />
-          <span className="text-white">with </span>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-tis-teal via-tis-gold to-tis-red">
-            Tulas
-          </span>
-        </motion.h1>
-
-        {/* Sub-headline */}
-        <motion.p
-          variants={itemVariants}
-          className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed mb-10"
-        >
-          Tulas International School was established in 2012 to impart education
-          through{" "}
-          <span className="text-tis-gold font-semibold">seamless opportunities</span>.
-          A CBSE co-ed boarding school in the heart of Dehradun, Uttarakhand.
-        </motion.p>
-
-        {/* CTA Buttons */}
+        {/* ═══ RIGHT COLUMN: Animated Ring Visual ═══ */}
         <motion.div
-          variants={itemVariants}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          className="relative flex items-center justify-center h-[420px]"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
         >
-          <Button href={CONTACT.admissionUrl} variant="primary" id="hero-apply-btn">
-            Apply for Admission →
-          </Button>
-          <Button href="#about" variant="secondary" id="hero-learn-btn">
-            Explore TIS
-          </Button>
-        </motion.div>
+          {/* Outer slow-spinning ring */}
+          <motion.div
+            className="absolute w-80 h-80 rounded-full border border-white/10"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          >
+            {/* Orbit items rotate around the ring */}
+            {ORBIT_ITEMS.map(({ icon: Icon, label, angle }) => (
+              <div
+                key={label}
+                className="absolute w-full h-full"
+                style={{ transform: `rotate(${angle}deg)` }}
+              >
+                <div
+                  className="absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
+                  style={{ transform: `translateX(-50%) rotate(-${angle}deg)` }}
+                >
+                  <div className="w-10 h-10 bg-white/10 backdrop-blur rounded-full flex items-center justify-center border border-white/20">
+                    <Icon size={16} className="text-tis-teal" />
+                  </div>
+                  <span className="text-white/60 text-xs font-medium">{label}</span>
+                </div>
+              </div>
+            ))}
+          </motion.div>
 
-        {/* Quick stats row */}
-        <motion.div
-          variants={itemVariants}
-          className="mt-16 grid grid-cols-3 gap-6 max-w-md mx-auto"
-        >
+          {/* Middle dashed ring */}
+          <div className="absolute w-56 h-56 rounded-full border border-dashed border-tis-gold/30" />
+
+          {/* Center glowing orb with main stat */}
+          <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-tis-red to-red-900 flex flex-col items-center justify-center shadow-2xl shadow-tis-red/40">
+            {/* Glow pulse effect */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-tis-red/30"
+              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2.5, repeat: Infinity }}
+            />
+            <p className="text-4xl font-black text-white">40+</p>
+            <p className="text-xs text-white/70 uppercase tracking-widest">Acre Campus</p>
+          </div>
+
+          {/* Floating stat cards */}
           {[
-            { value: "40+", label: "Acre Campus" },
-            { value: "16+", label: "Sports" },
-            { value: "3000+", label: "Alumni" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <p className="text-3xl font-black text-tis-gold">{stat.value}</p>
-              <p className="text-xs text-gray-400 uppercase tracking-wider">{stat.label}</p>
-            </div>
+            { value: "16+", label: "Sports", x: "calc(100% - 20px)", y: "30%" },
+            { value: "3000+", label: "Alumni", x: "-20px", y: "60%" },
+          ].map(({ value, label, x, y }) => (
+            <motion.div
+              key={label}
+              className="absolute bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-center"
+              style={{ right: x === "calc(100% - 20px)" ? undefined : undefined, left: x === "-20px" ? x : undefined }}
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: value === "16+" ? 0 : 1.5 }}
+            >
+              <p className="text-xl font-black text-white">{value}</p>
+              <p className="text-xs text-white/60">{label}</p>
+            </motion.div>
           ))}
         </motion.div>
-      </motion.div>
+      </div>
 
-      {/* ---- Scroll Indicator ---- */}
-      {/* Tells users there's more content below — improves scroll rate */}
-      <motion.a
-        href="#about"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 hover:text-white transition-colors"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.5, duration: 0.5 }}
+      {/* ---- Bottom Scroll Hint ---- */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
       >
-        <span className="text-xs uppercase tracking-widest">Scroll</span>
-        {/* Bouncing arrow animation using Framer Motion */}
-        <motion.div
-          animate={{ y: [0, 8, 0] }}  // Moves down 8px and back, repeatedly
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ArrowDown size={20} />
-        </motion.div>
-      </motion.a>
+        <div className="w-px h-12 bg-gradient-to-b from-transparent to-tis-teal/60" />
+        <span className="text-[10px] text-white/30 uppercase tracking-[0.25em]">Scroll</span>
+      </motion.div>
     </section>
   );
 }

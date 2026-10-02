@@ -1,234 +1,183 @@
 // ============================================================
 // src/components/layout/Navbar.tsx
 // ============================================================
-// The main navigation bar — handles:
-//   1. Logo + nav links (desktop)
-//   2. Dark/Light theme toggle (AnimatedToggle)
-//   3. "Apply Now" CTA button
-//   4. Mobile hamburger menu toggle
-//   5. Scroll-aware background (transparent → blurred glass on scroll)
+// UNIQUE DESIGN: Floating pill-shaped navbar
 //
-// Scroll-aware navbar pattern:
-//   - On top of page: transparent background (hero image shows through)
-//   - After scrolling 50px: glassmorphism effect (backdrop-blur + bg opacity)
-//   - This is a very common pattern on premium school/university websites
+// Instead of a full-width bar, this nav "floats" in the center
+// of the screen with rounded corners and glassmorphism.
+// This is a modern design trend used by premium brands.
+//
+// States:
+//   - At top: transparent, floats freely
+//   - After scroll: frosted glass pill with shadow
 // ============================================================
 
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import AnimatedToggle from "@/components/animation/AnimatedToggle";
 import { useTheme } from "@/hooks/useTheme";
 import { NAV_LINKS, CONTACT } from "@/data/siteData";
 
 export default function Navbar() {
-  // Theme state from our custom hook
   const { theme, toggleTheme } = useTheme();
-
-  // Whether the mobile menu drawer is open
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Whether the user has scrolled past 50px (changes navbar style)
   const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setHasScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setHasScrolled(window.scrollY > 60);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <>
+      {/* ---- Floating Pill Navbar ---- */}
       <motion.header
-        className={`
-          fixed top-1 left-0 right-0 z-[1000]
-          transition-all duration-500
-          ${
-            hasScrolled
-              ? // Glassmorphism: frosted glass effect when scrolled
-                "bg-white/80 dark:bg-tis-dark/80 backdrop-blur-md shadow-lg"
-              : // Transparent when at the top
-                "bg-transparent"
-          }
-        `}
-        // Slide down from above on initial page load
+        className="fixed top-5 left-1/2 z-[1000]"
+        style={{ x: "-50%" }}
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
       >
-        {/* Top info bar — phone number */}
-        <div className="bg-tis-red text-white text-xs py-1 px-4 flex justify-center items-center gap-2">
-          <Phone size={12} />
-          <span>Admissions Helpline: </span>
-          <a href={`tel:${CONTACT.phone}`} className="font-semibold hover:underline">
-            {CONTACT.phone}
-          </a>
-        </div>
+        <div
+          className={`
+            flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-500
+            ${hasScrolled
+              ? "bg-white/10 dark:bg-black/30 backdrop-blur-xl border border-white/20 shadow-2xl shadow-black/30"
+              : "bg-transparent border border-white/10"
+            }
+          `}
+        >
+          {/* ---- Logo ---- */}
+          <motion.a
+            href="#"
+            className="flex items-center gap-2 px-3 py-1"
+            whileHover={{ scale: 1.05 }}
+          >
+            {/* Logo circle */}
+            <div className="w-7 h-7 rounded-full bg-tis-red flex items-center justify-center">
+              <span className="text-white text-xs font-black">T</span>
+            </div>
+            <span className="text-white font-bold text-sm tracking-tight hidden sm:block">
+              Tulas
+            </span>
+          </motion.a>
 
-        {/* Main navbar row */}
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          {/* Divider */}
+          <div className="w-px h-5 bg-white/20" />
 
-            {/* ---- Logo ---- */}
+          {/* ---- Desktop Nav Links ---- */}
+          <ul className="hidden lg:flex items-center">
+            {NAV_LINKS.map((link) => (
+              <li key={link.href}>
+                <motion.a
+                  href={link.href}
+                  className="px-4 py-2 rounded-full text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 block"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  {link.label}
+                </motion.a>
+              </li>
+            ))}
+          </ul>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-white/20 hidden lg:block" />
+
+          {/* ---- Right Controls ---- */}
+          <div className="flex items-center gap-2 px-1">
+            {/* Theme Toggle */}
+            <AnimatedToggle isDark={theme === "dark"} onToggle={toggleTheme} />
+
+            {/* Apply CTA — pill inside pill */}
             <motion.a
-              href="#"
-              className="flex items-center gap-3"
-              whileHover={{ scale: 1.02 }}
+              href={CONTACT.admissionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              id="navbar-apply-btn"
+              className="hidden sm:flex items-center gap-1 bg-tis-red hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors duration-200"
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.95 }}
             >
-              {/* Text logo — used when image isn't available */}
-              <div className="flex flex-col leading-none">
-                <span
-                  className={`text-xl font-black tracking-tight ${
-                    hasScrolled
-                      ? "text-tis-red"
-                      : "text-white drop-shadow-lg"
-                  }`}
-                >
-                  TIS
-                </span>
-                <span
-                  className={`text-[10px] font-medium tracking-widest uppercase ${
-                    hasScrolled
-                      ? "text-gray-600 dark:text-gray-300"
-                      : "text-white/80 drop-shadow-md"
-                  }`}
-                >
-                  Tulas International School
-                </span>
-              </div>
+              Apply Now
             </motion.a>
 
-            {/* ---- Desktop Nav Links ---- */}
-            <ul className="hidden lg:flex items-center gap-1">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <motion.a
-                    href={link.href}
-                    className={`
-                      px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200
-                      hover:bg-tis-red/10 hover:text-tis-red
-                      ${
-                        hasScrolled
-                          ? "text-gray-700 dark:text-gray-200"
-                          : "text-white drop-shadow-sm"
-                      }
-                    `}
-                    whileHover={{ y: -1 }}
-                  >
-                    {link.label}
-                  </motion.a>
-                </li>
-              ))}
-            </ul>
-
-            {/* ---- Right Side Controls ---- */}
-            <div className="flex items-center gap-3">
-              {/* Theme toggle */}
-              <AnimatedToggle
-                isDark={theme === "dark"}
-                onToggle={toggleTheme}
-              />
-
-              {/* Apply Now CTA — hidden on small mobile */}
-              <motion.a
-                href={CONTACT.admissionUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                id="navbar-apply-btn"
-                className="hidden sm:inline-flex items-center gap-2 px-5 py-2 bg-tis-red text-white rounded-full text-sm font-semibold hover:bg-red-700 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                Apply Now
-              </motion.a>
-
-              {/* Mobile hamburger button */}
-              <motion.button
-                id="mobile-menu-btn"
-                className="lg:hidden p-2 rounded-lg text-white hover:bg-white/10"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                whileTap={{ scale: 0.9 }}
-                aria-label="Toggle mobile menu"
-              >
-                {isMobileMenuOpen ? (
-                  <X size={24} className={hasScrolled ? "text-gray-800 dark:text-white" : "text-white"} />
-                ) : (
-                  <Menu size={24} className={hasScrolled ? "text-gray-800 dark:text-white" : "text-white"} />
-                )}
-              </motion.button>
-            </div>
+            {/* Mobile hamburger */}
+            <motion.button
+              id="mobile-menu-btn"
+              className="lg:hidden p-2 rounded-full hover:bg-white/10 text-white transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              whileTap={{ scale: 0.9 }}
+              aria-label="Toggle mobile menu"
+            >
+              {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </motion.button>
           </div>
-        </nav>
+        </div>
       </motion.header>
 
-      {/* ---- Mobile Drawer Menu ---- */}
-      {/* AnimatePresence enables exit animations when the menu closes */}
+      {/* ---- Mobile Full-Screen Menu ---- */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             id="mobile-menu"
-            className="fixed inset-0 z-[999] bg-tis-dark/95 backdrop-blur-lg flex flex-col pt-20 px-6"
-            initial={{ x: "100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "100%", opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed inset-0 z-[999] flex flex-col"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
+            {/* Dark blurred backdrop */}
+            <div className="absolute inset-0 bg-[#0a0a0f]/95 backdrop-blur-2xl" />
+
+            {/* Decorative orb */}
+            <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-tis-red/20 rounded-full blur-3xl" />
+
             {/* Close button */}
             <button
-              className="absolute top-4 right-4 text-white p-2"
+              className="absolute top-6 right-6 text-white p-2 z-10"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <X size={28} />
             </button>
 
-            {/* Mobile nav links — staggered entrance */}
-            <ul className="space-y-6">
-              {NAV_LINKS.map((link, index) => (
-                <motion.li
-                  key={link.href}
-                  // Stagger: each item enters 100ms after the previous one
-                  initial={{ opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.08, duration: 0.4 }}
-                >
-                  <a
-                    href={link.href}
-                    className="text-white text-3xl font-bold hover:text-tis-teal transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
+            {/* Nav links */}
+            <div className="relative z-10 flex flex-col justify-center h-full px-10">
+              <div className="h-px w-12 bg-tis-teal mb-8" />
+              <ul className="space-y-2">
+                {NAV_LINKS.map((link, index) => (
+                  <motion.li
+                    key={link.href}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.07, duration: 0.4 }}
                   >
-                    {link.label}
-                  </a>
-                </motion.li>
-              ))}
-            </ul>
+                    <a
+                      href={link.href}
+                      className="text-5xl font-black text-white/30 hover:text-white transition-colors duration-200 block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </a>
+                  </motion.li>
+                ))}
+              </ul>
 
-            {/* Mobile Apply Now */}
-            <motion.div
-              className="mt-auto mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <a
+              <motion.a
                 href={CONTACT.admissionUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full text-center bg-tis-red text-white py-4 rounded-2xl text-lg font-bold"
+                className="mt-12 inline-flex items-center gap-2 bg-tis-red text-white px-8 py-4 rounded-full font-bold text-sm w-fit"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
               >
-                Apply Now →
-              </a>
-              <a
-                href={`tel:${CONTACT.phone}`}
-                className="flex items-center justify-center gap-2 mt-4 text-tis-teal"
-              >
-                <Phone size={16} />
-                {CONTACT.phone}
-              </a>
-            </motion.div>
+                Apply for Admission →
+              </motion.a>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
