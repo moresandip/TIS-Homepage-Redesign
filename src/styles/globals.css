@@ -1,75 +1,69 @@
 /* ============================================================
    src/styles/globals.css
    ============================================================
-   Global CSS styles for the TIS Homepage Redesign.
-   
-   NOTE: Google Fonts is loaded via <link> in src/app/layout.tsx
-   (not here) to avoid PostCSS @import ordering restrictions.
+   NOTE: Google Fonts loaded via <link> in src/app/layout.tsx
    ============================================================ */
 
-/* Tailwind CSS layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ---- CSS Custom Properties (Design Tokens) ---- */
-/* Using :root so these are globally available and easily themedable */
+/* ---- Design Tokens ---- */
 :root {
-  /* TIS Brand Colors */
-  --color-tis-red: #b90124;
-  --color-tis-teal: #60bab1;
-  --color-tis-gold: #c09d59;
-  --color-tis-dark: #131313;
-
-  /* Typography scale */
-  --font-body: "Inter", system-ui, sans-serif;
-
-  /* Spacing / radius */
-  --radius-card: 1.5rem;  /* 24px */
+  --color-void:      #06060A;
+  --color-base:      #0D0D14;
+  --color-surface:   #141420;
+  --color-raised:    #1C1C2A;
+  --color-border:    #252535;
+  --color-crimson:   #C01837;
+  --color-jade:      #3AAFA0;
+  --color-champagne: #D4B483;
+  --color-pearl:     #F2EDE4;
+  --color-muted:     #8888A0;
 }
 
-/* ---- Base Styles ---- */
+/* ---- Base ---- */
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 
   body {
-    font-family: var(--font-body);
+    font-family: "Inter", system-ui, sans-serif;
     overflow-x: hidden;
-    /* Dark-first design — matches the new premium aesthetic */
-    @apply bg-[#0a0a0f] text-white;
+    /* Premium radial gradient — centre is slightly lighter (depth illusion) */
+    background-color: var(--color-base);
+    background-image: radial-gradient(ellipse at 50% 0%, #1C1C2A 0%, #06060A 70%);
+    background-attachment: fixed;
+    color: var(--color-pearl);
   }
 
-  /* Smooth mode transition */
+  /* Smooth color transitions for all elements */
   *, *::before, *::after {
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
+
+  /* Headings use display font for impact */
+  h1, h2, h3 { font-family: "Inter", system-ui, sans-serif; }
 }
 
-/* ---- Noise Texture Overlay ---- */
-/* Subtle grain effect adds depth to flat backgrounds */
+/* ---- Premium Noise Grain ---- */
+/* Subtle texture added via pseudo-element — makes flat backgrounds feel organic */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 9998;
-  opacity: 0.4;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
 }
 
-/* ---- Hide native cursor on desktop (for custom cursor feature) ---- */
-/* pointer: fine = mouse users (desktop) — hide native cursor       */
-/* pointer: coarse = touch users (mobile) — keep native cursor      */
+/* ---- Custom Cursor (desktop only) ---- */
 @media (pointer: fine) {
-  * {
-    cursor: none !important;
-  }
+  * { cursor: none !important; }
 }
 
 /* ---- Scroll Progress Bar ---- */
-/* Extra safety: makes sure nothing appears above the progress bar */
 .scroll-progress {
   position: fixed;
   top: 0;
@@ -77,33 +71,72 @@ body::before {
   z-index: 9999;
 }
 
-/* ---- Glassmorphism Utility ---- */
-/* Used by the navbar when scrolled */
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* ---- Text Selection Color ---- */
-/* Matches TIS brand — makes selection look premium */
+/* ---- Premium Text Selection ---- */
+/* Champagne gold highlight = luxurious feel */
 ::selection {
-  background-color: #b90124;
-  color: white;
+  background-color: #D4B483;
+  color: #06060A;
 }
 
-/* ---- Scrollbar Styling (Webkit browsers: Chrome, Safari, Edge) ---- */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--color-void); }
 ::-webkit-scrollbar-thumb {
-  background-color: #b90124;
-  border-radius: 3px;
+  background: linear-gradient(to bottom, #C01837, #D4B483);
+  border-radius: 99px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background-color: #c09d59;
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+/* Glassmorphism card (dark variant) */
+.glass-dark {
+  background: rgba(20, 20, 32, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Shimmer text animation — for hero accents */
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #D4B483 0%,
+    #F2EDE4 40%,
+    #D4B483 60%,
+    #9C7D50 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Gradient border trick — used on premium cards */
+.border-gradient {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+.border-gradient::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(212,180,131,0.3), rgba(58,175,160,0.2), transparent);
+  z-index: -1;
+}
+
+/* Glow effects */
+.glow-crimson { box-shadow: 0 0 40px -10px rgba(192, 24, 55, 0.6); }
+.glow-jade    { box-shadow: 0 0 40px -10px rgba(58, 175, 160, 0.5); }
+.glow-champ   { box-shadow: 0 0 40px -10px rgba(212, 180, 131, 0.5); }
+
+/* Section divider — champagne gradient line */
+.divider-gold {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #D4B483, transparent);
+  border: none;
 }

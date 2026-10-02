@@ -21,28 +21,21 @@ export default function StatsSection() {
   const doubledStats = [...STATS, ...STATS];
 
   return (
-    <section className="bg-tis-red py-5 overflow-hidden">
-      {/* The outer div clips content that overflows horizontally */}
+    <section className="py-4 overflow-hidden border-y border-border" style={{ background: '#0D0D14' }}>
       <div className="relative flex">
-        {/* This div holds all items and runs the marquee animation */}
         <div className="flex items-center gap-0 animate-marquee">
           {doubledStats.map((stat, index) => (
-            <div
-              key={index}
-              // Each item is a flex row with a separator dot between
-              className="flex items-center shrink-0"
-            >
-              {/* Stat block */}
+            <div key={index} className="flex items-center shrink-0">
               <div className="flex items-center gap-3 px-8 py-1">
-                <span className="text-2xl font-black text-white">
+                <span className="text-xl font-black text-pearl">
                   {stat.value}
                 </span>
-                <span className="text-white/70 text-sm uppercase tracking-wider font-medium">
+                <span className="text-muted text-xs uppercase tracking-widest font-medium">
                   {stat.label}
                 </span>
               </div>
-              {/* Gold dot separator between items */}
-              <div className="w-1.5 h-1.5 rounded-full bg-tis-gold shrink-0" />
+              {/* Champagne diamond separator */}
+              <div className="w-1 h-1 rotate-45 bg-champagne/60 shrink-0" />
             </div>
           ))}
         </div>

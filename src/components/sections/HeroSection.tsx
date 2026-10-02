@@ -49,24 +49,27 @@ export default function HeroSection() {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center overflow-hidden bg-[#0a0a0f]"
+      className="relative min-h-screen flex items-center overflow-hidden bg-void"
     >
       {/* ---- Background Grid Pattern ---- */}
       {/* Fine dot grid gives a "tech/premium" feel */}
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-[0.07]"
         style={{
           backgroundImage:
-            "radial-gradient(circle, #60bab1 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
+            "radial-gradient(circle, #D4B483 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
         }}
       />
 
       {/* ---- Diagonal Color Block ---- */}
       {/* Right side of the hero has a deep red background using clip-path */}
       <div
-        className="absolute inset-0 bg-gradient-to-br from-tis-red/80 to-red-950"
-        style={{ clipPath: "polygon(58% 0, 100% 0, 100% 100%, 45% 100%)" }}
+        className="absolute inset-0"
+        style={{ 
+          clipPath: "polygon(58% 0, 100% 0, 100% 100%, 45% 100%)",
+          background: "linear-gradient(160deg, #C01837 0%, #5A0A1A 60%, #06060A 100%)"
+        }}
       />
 
       {/* ---- Large Decorative Letter ---- */}
@@ -91,8 +94,8 @@ export default function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="h-px w-12 bg-tis-teal" />
-            <span className="text-tis-teal text-sm font-semibold tracking-[0.2em] uppercase">
+            <div className="h-px w-12 bg-champagne/60" />
+            <span className="text-champagne text-sm font-semibold tracking-[0.2em] uppercase">
               Est. 2012 · Dehradun
             </span>
           </motion.div>
@@ -103,7 +106,7 @@ export default function HeroSection() {
             <br />
             {/* Cycling word with fade animation */}
             <span
-              className="inline-block transition-all duration-300 text-transparent bg-clip-text bg-gradient-to-r from-tis-gold to-tis-teal"
+              className="inline-block transition-all duration-300 text-transparent bg-clip-text bg-gradient-to-r from-champagne via-champagne-light to-jade"
               style={{ opacity: isChanging ? 0 : 1, transform: isChanging ? "translateY(10px)" : "translateY(0)" }}
             >
               {CYCLING_WORDS[wordIndex]}
@@ -129,7 +132,7 @@ export default function HeroSection() {
               target="_blank"
               rel="noopener noreferrer"
               id="hero-apply-btn"
-              className="group flex items-center gap-3 bg-tis-red hover:bg-red-600 text-white px-8 py-4 rounded-full font-bold text-sm transition-all duration-300"
+              className="group flex items-center gap-3 bg-crimson hover:bg-crimson-light text-pearl px-8 py-4 rounded-full font-bold text-sm transition-all duration-300 shadow-glow-crimson"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
             >
@@ -146,7 +149,7 @@ export default function HeroSection() {
             <motion.a
               href="#about"
               id="hero-explore-btn"
-              className="flex items-center gap-2 border border-white/20 text-white hover:border-tis-teal hover:text-tis-teal px-8 py-4 rounded-full font-semibold text-sm transition-all duration-300"
+              className="flex items-center gap-2 border border-border text-muted hover:border-jade hover:text-jade px-8 py-4 rounded-full font-semibold text-sm transition-all duration-300"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
             >
@@ -164,7 +167,7 @@ export default function HeroSection() {
         >
           {/* Outer slow-spinning ring */}
           <motion.div
-            className="absolute w-80 h-80 rounded-full border border-white/10"
+            className="absolute w-80 h-80 rounded-full border border-champagne/10"
             animate={{ rotate: 360 }}
             transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
           >
@@ -179,23 +182,23 @@ export default function HeroSection() {
                   className="absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
                   style={{ transform: `translateX(-50%) rotate(-${angle}deg)` }}
                 >
-                  <div className="w-10 h-10 bg-white/10 backdrop-blur rounded-full flex items-center justify-center border border-white/20">
-                    <Icon size={16} className="text-tis-teal" />
+                  <div className="w-10 h-10 bg-raised backdrop-blur rounded-full flex items-center justify-center border border-border">
+                    <Icon size={16} className="text-champagne" />
                   </div>
-                  <span className="text-white/60 text-xs font-medium">{label}</span>
+                  <span className="text-muted text-xs font-medium">{label}</span>
                 </div>
               </div>
             ))}
           </motion.div>
 
           {/* Middle dashed ring */}
-          <div className="absolute w-56 h-56 rounded-full border border-dashed border-tis-gold/30" />
+          <div className="absolute w-56 h-56 rounded-full border border-dashed border-champagne/20" />
 
           {/* Center glowing orb with main stat */}
-          <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-tis-red to-red-900 flex flex-col items-center justify-center shadow-2xl shadow-tis-red/40">
+          <div className="relative w-40 h-40 rounded-full flex flex-col items-center justify-center shadow-glow-crimson" style={{ background: 'linear-gradient(135deg, #C01837, #6A0F1F)' }}>
             {/* Glow pulse effect */}
             <motion.div
-              className="absolute inset-0 rounded-full bg-tis-red/30"
+              className="absolute inset-0 rounded-full bg-crimson/20"
               animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
               transition={{ duration: 2.5, repeat: Infinity }}
             />
@@ -210,13 +213,13 @@ export default function HeroSection() {
           ].map(({ value, label, x, y }) => (
             <motion.div
               key={label}
-              className="absolute bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-center"
+              className="absolute glass-dark rounded-2xl px-4 py-3 text-center"
               style={{ right: x === "calc(100% - 20px)" ? undefined : undefined, left: x === "-20px" ? x : undefined }}
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: value === "16+" ? 0 : 1.5 }}
             >
               <p className="text-xl font-black text-white">{value}</p>
-              <p className="text-xs text-white/60">{label}</p>
+              <p className="text-xs text-muted">{label}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -229,7 +232,7 @@ export default function HeroSection() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5 }}
       >
-        <div className="w-px h-12 bg-gradient-to-b from-transparent to-tis-teal/60" />
+        <div className="w-px h-12 bg-gradient-to-b from-transparent to-champagne/40" />
         <span className="text-[10px] text-white/30 uppercase tracking-[0.25em]">Scroll</span>
       </motion.div>
     </section>
