@@ -1,100 +1,200 @@
 // ============================================================
 // src/components/sections/AcademicsSection.tsx
 // ============================================================
-// Shows the 4 academic programs (Primary, Middle, Secondary, Senior).
-// Layout: horizontal card row on desktop, stacked on mobile.
+// UNIQUE INTERACTION: 3D Tilt Cards
 //
-// Interaction pattern: hover a card → it lifts up (translateY),
-// gains a colored glow shadow, and reveals a description.
-// This is the "card reveal on hover" pattern — good for keeping
-// the layout clean while still providing detail on demand.
+// When you hover a card, it rotates in 3D based on where your
+// mouse is on the card. This is the "tilt.js" effect done in
+// pure React/Framer Motion — no external library needed.
+//
+// How 3D Tilt works:
+//   1. Track mouse position within the card (onMouseMove)
+//   2. Calculate how far from center the mouse is (as -1 to 1)
+//   3. Apply rotateX and rotateY CSS transforms
+//   4. On mouse leave, spring back to flat (rotateX=0, rotateY=0)
+//
+// The "perspective" CSS property creates the 3D depth illusion.
+// Without it, rotateX/Y just look like skew transforms.
 // ============================================================
 
 "use client";
 
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import SectionWrapper from "@/components/ui/SectionWrapper";
-import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
 import { PROGRAMS } from "@/data/siteData";
+
+// ---- TiltCard Component ----
+// Wraps each program card with mouse-tracking 3D tilt
+function TiltCard({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Raw mouse position values (no smoothing)
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // Spring smoothing — card doesn't snap instantly, it eases
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), {
+    stiffness: 300,
+    damping: 30,
+  });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), {
+    stiffness: 300,
+    damping: 30,
+  });
+  // Subtle scale up on hover
+  const scale = useSpring(1, { stiffness: 300, damping: 30 });
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    // Normalize to -0.5 → 0.5 range
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  }
+
+  function handleMouseLeave() {
+    // Spring back to flat
+    mouseX.set(0);
+    mouseY.set(0);
+    scale.set(1);
+  }
+
+  function handleMouseEnter() {
+    scale.set(1.04);
+  }
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onMouseEnter={handleMouseEnter}
+      style={{
+        rotateX,
+        rotateY,
+        scale,
+        // perspective is what makes rotateX/Y look truly 3D
+        transformPerspective: 1000,
+        transformStyle: "preserve-3d",
+      }}
+      className={className}
+    >
+      {/* Inner content is pushed "forward" in 3D space */}
+      <div style={{ transform: "translateZ(20px)" }}>
+        {children}
+      </div>
+    </motion.div>
+  );
+}
 
 export default function AcademicsSection() {
   return (
-    <SectionWrapper
-      id="academics"
-      className="bg-gray-50 dark:bg-black/30"
-    >
-      {/* Section Header */}
-      <div className="text-center mb-14">
-        <Badge color="teal">Academics</Badge>
-        <h2 className="mt-4 text-4xl md:text-5xl font-black text-gray-900 dark:text-white">
-          Programs for Every Stage
-        </h2>
-        <p className="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-          From nurturing young minds in Primary to launching confident leaders
-          in Senior Secondary — our curriculum grows with your child.
-        </p>
-      </div>
+    <SectionWrapper id="academics">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
-      {/* Cards grid — 2 columns on tablet, 4 on desktop */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {PROGRAMS.map((program, index) => (
-          <motion.div
-            key={program.id}
-            // Staggered scroll reveal for each card
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.1, duration: 0.5 }}
-            // Hover: lift the card upward
-            whileHover={{ y: -8 }}
-            className={`
-              relative overflow-hidden rounded-3xl p-7 border cursor-default
-              bg-gradient-to-br ${program.color}
-              border-white/10 dark:border-white/5
-              hover:shadow-xl transition-shadow duration-300
-            `}
-            // Dynamic shadow color matching the program accent
-            style={{
-              "--hover-shadow": `0 20px 40px ${program.accent}30`,
-            } as React.CSSProperties}
-          >
-            {/* Large emoji icon */}
-            <span className="text-5xl mb-4 block">{program.icon}</span>
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-px w-12 bg-jade" />
+              <span className="text-jade text-sm font-semibold tracking-[0.2em] uppercase">
+                Academics
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-6xl font-black text-pearl leading-tight">
+              Programs for{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-jade to-champagne">
+                Every Stage
+              </span>
+            </h2>
+          </div>
+          <p className="text-muted max-w-xs text-sm leading-relaxed">
+            From nurturing young minds to launching confident leaders — our
+            curriculum grows with your child.
+          </p>
+        </div>
 
-            {/* Accent color tag */}
-            <span
-              className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-3"
-              style={{
-                backgroundColor: `${program.accent}20`,
-                color: program.accent,
-              }}
+        {/* 3D Tilt Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {PROGRAMS.map((program, index) => (
+            <motion.div
+              key={program.id}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.12, duration: 0.5 }}
             >
-              {program.subtitle}
-            </span>
+              <TiltCard
+                className={`
+                  relative overflow-hidden rounded-3xl p-7 cursor-default h-full
+                  border border-border
+                  bg-gradient-to-br ${program.color}
+                `}
+              >
+                {/* Glowing orb behind the icon */}
+                <div
+                  className="absolute top-4 right-4 w-24 h-24 rounded-full blur-2xl opacity-30"
+                  style={{ backgroundColor: program.accent }}
+                />
 
-            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-3">
-              {program.title}
-            </h3>
+                {/* Icon */}
+                <span className="text-5xl mb-5 block relative z-10">
+                  {program.icon}
+                </span>
 
-            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              {program.description}
-            </p>
+                {/* Grade badge */}
+                <span
+                  className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-4 relative z-10"
+                  style={{
+                    backgroundColor: `${program.accent}25`,
+                    color: program.accent,
+                    border: `1px solid ${program.accent}40`,
+                  }}
+                >
+                  {program.subtitle}
+                </span>
 
-            {/* Decorative background circle */}
-            <div
-              className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full opacity-10"
-              style={{ backgroundColor: program.accent }}
-            />
-          </motion.div>
-        ))}
-      </div>
+                <h3 className="text-xl font-black text-pearl mb-3 relative z-10">
+                  {program.title}
+                </h3>
 
-      {/* Bottom CTA */}
-      <div className="mt-12 text-center">
-        <Button href="#admissions" variant="primary" id="academics-cta">
-          Enquire About Admissions
-        </Button>
+                <p className="text-sm text-muted leading-relaxed relative z-10">
+                  {program.description}
+                </p>
+
+                {/* Bottom accent line */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-0.5 opacity-50"
+                  style={{
+                    background: `linear-gradient(to right, transparent, ${program.accent}, transparent)`,
+                  }}
+                />
+              </TiltCard>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-12 text-center">
+          <motion.a
+            href="#admissions"
+            id="academics-cta"
+            className="inline-flex items-center gap-3 border border-champagne/30 text-champagne hover:bg-champagne/10 px-8 py-4 rounded-full font-semibold text-sm transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.96 }}
+          >
+            Enquire About Admissions →
+          </motion.a>
+        </div>
       </div>
     </SectionWrapper>
   );

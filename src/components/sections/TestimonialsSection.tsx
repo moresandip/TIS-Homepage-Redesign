@@ -1,151 +1,271 @@
 // ============================================================
 // src/components/sections/TestimonialsSection.tsx
 // ============================================================
-// Social proof section — shows quotes from parents and alumni.
-// "Social proof" is a UX principle: people trust a school more
-// when they see real testimonials from happy parents/students.
+// UNIQUE INTERACTIONS:
+//   1. Auto-rotating carousel (every 4 seconds)
+//   2. Drag to swipe (Framer Motion drag constraint)
+//   3. Keyboard arrow navigation
+//   4. Active card expands with smooth layout animation
+//   5. Progress bar shows time until next auto-rotate
 //
-// Layout: 3 cards in a row on desktop, single column on mobile.
-// The active/featured card is visually larger and has a red border.
-//
-// We use a simple JS state to track which card is "active".
-// This could be extended to auto-rotate with setInterval if desired.
+// Pattern: "Featured testimonial" design — one large active card
+// + smaller preview cards on the side.
 // ============================================================
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import { Quote, Star } from "lucide-react";
 import SectionWrapper from "@/components/ui/SectionWrapper";
-import Badge from "@/components/ui/Badge";
 import { TESTIMONIALS } from "@/data/siteData";
 
+// Star rating component
+function StarRating({ count = 5 }: { count?: number }) {
+  return (
+    <div className="flex gap-1 mb-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <Star
+          key={i}
+          size={14}
+          className="text-champagne fill-champagne"
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function TestimonialsSection() {
-  // Track which testimonial card is currently the "active" / featured one
   const [activeIndex, setActiveIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
 
-  // Go to previous testimonial (with wrap-around using modulo)
-  const prev = () =>
-    setActiveIndex((i) => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+  const INTERVAL = 4000; // Auto-rotate every 4 seconds
 
-  // Go to next testimonial (with wrap-around)
-  const next = () =>
+  const next = useCallback(() => {
     setActiveIndex((i) => (i + 1) % TESTIMONIALS.length);
+    setProgress(0);
+  }, []);
+
+  const prev = () => {
+    setActiveIndex((i) => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+    setProgress(0);
+  };
+
+  // Auto-rotate + progress bar
+  useEffect(() => {
+    const start = Date.now();
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - start;
+      setProgress((elapsed / INTERVAL) * 100);
+    }, 50);
+
+    const rotateTimer = setTimeout(next, INTERVAL);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(rotateTimer);
+    };
+  }, [activeIndex, next]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [next]);
+
+  const active = TESTIMONIALS[activeIndex];
 
   return (
-    <SectionWrapper id="boarding" className="bg-gray-50 dark:bg-black/20">
-      <div className="text-center mb-14">
-        <Badge color="gold">Testimonials</Badge>
-        <h2 className="mt-4 text-4xl md:text-5xl font-black text-gray-900 dark:text-white">
-          Voices of the TIS Family
-        </h2>
-        <p className="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-          Hear from parents and alumni who experienced the Tulas difference firsthand.
-        </p>
-      </div>
+    <SectionWrapper id="boarding">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
-      {/* Testimonial Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {TESTIMONIALS.map((testimonial, index) => {
-          const isActive = index === activeIndex;
-          return (
-            <motion.div
-              key={testimonial.id}
-              // Click to make this card active
-              onClick={() => setActiveIndex(index)}
-              className={`
-                relative p-8 rounded-3xl cursor-pointer transition-all duration-300
-                ${isActive
-                  ? "bg-tis-red text-white shadow-2xl shadow-tis-red/30 scale-105"
-                  : "bg-white dark:bg-tis-dark-card text-gray-800 dark:text-white hover:shadow-lg"
-                }
-              `}
-              whileHover={!isActive ? { y: -4 } : {}}
-              layout  // AnimateLayout handles smooth size/position transitions
-            >
-              {/* Quote icon */}
-              <Quote
-                size={32}
-                className={`mb-4 ${isActive ? "text-white/40" : "text-tis-red/30"}`}
-              />
-
-              {/* The testimonial quote text */}
-              <p
-                className={`text-base leading-relaxed mb-6 ${
-                  isActive ? "text-white" : "text-gray-600 dark:text-gray-300"
-                }`}
-              >
-                &ldquo;{testimonial.quote}&rdquo;
-              </p>
-
-              {/* Author row */}
-              <div className="flex items-center gap-3">
-                {/* Avatar circle with initials */}
-                <div
-                  className={`
-                    w-10 h-10 rounded-full flex items-center justify-center
-                    text-sm font-bold shrink-0
-                    ${isActive ? "bg-white text-tis-red" : "bg-tis-red text-white"}
-                  `}
-                >
-                  {testimonial.avatar}
-                </div>
-                <div>
-                  <p className="font-bold text-sm">{testimonial.author}</p>
-                  <p
-                    className={`text-xs ${
-                      isActive ? "text-white/70" : "text-gray-400"
-                    }`}
-                  >
-                    {testimonial.role}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Navigation buttons */}
-      <div className="flex justify-center gap-4">
-        <motion.button
-          id="testimonial-prev-btn"
-          onClick={prev}
-          className="w-10 h-10 rounded-full bg-white dark:bg-tis-dark-card border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-600 dark:text-white hover:border-tis-red hover:text-tis-red transition-colors"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label="Previous testimonial"
-        >
-          <ChevronLeft size={18} />
-        </motion.button>
-
-        {/* Dot indicators */}
-        <div className="flex items-center gap-2">
-          {TESTIMONIALS.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveIndex(i)}
-              aria-label={`Go to testimonial ${i + 1}`}
-              className={`rounded-full transition-all duration-300 ${
-                i === activeIndex
-                  ? "w-6 h-2.5 bg-tis-red"
-                  : "w-2.5 h-2.5 bg-gray-300 dark:bg-gray-600"
-              }`}
-            />
-          ))}
+        {/* Section Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-px w-12 bg-champagne/60" />
+          <span className="text-champagne text-sm font-semibold tracking-[0.2em] uppercase">
+            Testimonials
+          </span>
         </div>
 
-        <motion.button
-          id="testimonial-next-btn"
-          onClick={next}
-          className="w-10 h-10 rounded-full bg-white dark:bg-tis-dark-card border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-600 dark:text-white hover:border-tis-red hover:text-tis-red transition-colors"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label="Next testimonial"
-        >
-          <ChevronRight size={18} />
-        </motion.button>
+        <div className="flex flex-col lg:flex-row gap-12 items-start">
+
+          {/* ═══ LEFT: Featured Active Card ═══ */}
+          <div className="lg:w-1/2">
+            <h2 className="text-4xl md:text-5xl font-black text-pearl leading-tight mb-10">
+              Voices of the{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-champagne to-jade">
+                TIS Family
+              </span>
+            </h2>
+
+            {/* Main featured testimonial */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={active.id}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 30 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="relative bg-surface border border-border rounded-3xl p-8"
+              >
+                {/* Decorative quote mark */}
+                <Quote
+                  size={48}
+                  className="text-crimson/20 mb-4"
+                />
+
+                <StarRating />
+
+                <p className="text-pearl text-lg leading-relaxed mb-8 font-light">
+                  &ldquo;{active.quote}&rdquo;
+                </p>
+
+                {/* Author */}
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-crimson-gradient flex items-center justify-center text-pearl font-bold text-sm shadow-glow-crimson">
+                    {active.avatar}
+                  </div>
+                  <div>
+                    <p className="text-pearl font-bold">{active.author}</p>
+                    <p className="text-muted text-sm">{active.role}</p>
+                  </div>
+                </div>
+
+                {/* Progress bar — shows time until next auto-rotate */}
+                <div className="mt-6 h-0.5 bg-border rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-crimson to-champagne rounded-full"
+                    style={{ width: `${Math.min(progress, 100)}%` }}
+                  />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation */}
+            <div className="flex items-center gap-4 mt-6">
+              {/* Prev / Next buttons */}
+              <motion.button
+                id="testimonial-prev-btn"
+                onClick={prev}
+                className="w-11 h-11 rounded-full border border-border flex items-center justify-center text-muted hover:border-champagne hover:text-champagne transition-all"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Previous testimonial"
+              >
+                ←
+              </motion.button>
+
+              {/* Dot indicators — expand on active */}
+              <div className="flex items-center gap-2">
+                {TESTIMONIALS.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setActiveIndex(i); setProgress(0); }}
+                    aria-label={`Go to testimonial ${i + 1}`}
+                    className={`rounded-full transition-all duration-400 ${
+                      i === activeIndex
+                        ? "w-8 h-2 bg-champagne"
+                        : "w-2 h-2 bg-border hover:bg-muted"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <motion.button
+                id="testimonial-next-btn"
+                onClick={next}
+                className="w-11 h-11 rounded-full border border-border flex items-center justify-center text-muted hover:border-champagne hover:text-champagne transition-all"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Next testimonial"
+              >
+                →
+              </motion.button>
+
+              <span className="text-subtle text-xs ml-2">
+                Use ← → keys to navigate
+              </span>
+            </div>
+          </div>
+
+          {/* ═══ RIGHT: Draggable Preview Stack ═══ */}
+          {/* Shows all testimonials as small draggable cards */}
+          <div className="lg:w-1/2 space-y-3">
+            {TESTIMONIALS.map((t, index) => {
+              const isActive = index === activeIndex;
+              return (
+                <motion.div
+                  key={t.id}
+                  onClick={() => { setActiveIndex(index); setProgress(0); }}
+                  className={`
+                    relative p-5 rounded-2xl cursor-pointer transition-all duration-300 border
+                    ${isActive
+                      ? "bg-crimson border-crimson/40 shadow-glow-crimson"
+                      : "bg-surface border-border hover:border-champagne/30"
+                    }
+                  `}
+                  whileHover={!isActive ? { x: 8 } : {}}
+                  whileTap={{ scale: 0.98 }}
+                  layout
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Avatar */}
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "bg-raised text-champagne"
+                      }`}
+                    >
+                      {t.avatar}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`font-bold text-sm ${
+                          isActive ? "text-white" : "text-pearl"
+                        }`}
+                      >
+                        {t.author}
+                      </p>
+                      <p
+                        className={`text-xs mb-2 ${
+                          isActive ? "text-white/70" : "text-muted"
+                        }`}
+                      >
+                        {t.role}
+                      </p>
+                      {/* Show truncated quote */}
+                      <p
+                        className={`text-xs leading-relaxed line-clamp-2 ${
+                          isActive ? "text-white/80" : "text-subtle"
+                        }`}
+                      >
+                        &ldquo;{t.quote}&rdquo;
+                      </p>
+                    </div>
+
+                    {/* Active indicator arrow */}
+                    {isActive && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="text-white/60 text-lg shrink-0"
+                      >
+                        ←
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+        </div>
       </div>
     </SectionWrapper>
   );

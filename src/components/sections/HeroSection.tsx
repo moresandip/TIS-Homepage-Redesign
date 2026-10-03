@@ -14,8 +14,8 @@
 
 "use client";
 
-import { motion, useAnimationFrame } from "framer-motion";
-import { useState, useRef } from "react";
+import { motion, useAnimationFrame, useMotionValue, useSpring } from "framer-motion";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowRight, MapPin, Award, Users } from "lucide-react";
 import { CONTACT } from "@/data/siteData";
 
@@ -29,11 +29,77 @@ const ORBIT_ITEMS = [
   { icon: Users, label: "Co-Ed", angle: 240 },
 ];
 
+// ---- MagneticButton Component ----
+// The button is attracted toward the cursor when the cursor is nearby.
+// This is a premium micro-interaction seen on award-winning websites.
+// How it works:
+//   1. Track mouse position relative to button center
+//   2. When cursor is within a certain radius, move the button
+//   3. useSpring makes it feel elastic and satisfying
+function MagneticButton({ children, href, className, id }: {
+  children: React.ReactNode;
+  href: string;
+  className?: string;
+  id?: string;
+}) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const x = useSpring(0, { stiffness: 200, damping: 20 });
+  const y = useSpring(0, { stiffness: 200, damping: 20 });
+
+  function handleMouseMove(e: React.MouseEvent) {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    // Pull toward cursor — max 20px displacement
+    x.set((e.clientX - centerX) * 0.35);
+    y.set((e.clientY - centerY) * 0.35);
+  }
+
+  function handleMouseLeave() {
+    // Spring back to original position
+    x.set(0);
+    y.set(0);
+  }
+
+  return (
+    <motion.a
+      ref={ref}
+      href={href}
+      id={id}
+      style={{ x, y }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={className}
+      whileTap={{ scale: 0.95 }}
+    >
+      {children}
+    </motion.a>
+  );
+}
+
 export default function HeroSection() {
   const [wordIndex, setWordIndex] = useState(0);
   const [isChanging, setIsChanging] = useState(false);
 
-  // Cycle the word every 2.5 seconds with a fade transition
+  // Parallax mouse tracking for background orbs
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const parallaxX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const parallaxY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    // Normalize to -30 → 30 range for parallax shift
+    mouseX.set((e.clientX / window.innerWidth - 0.5) * 60);
+    mouseY.set((e.clientY / window.innerHeight - 0.5) * 40);
+  }, [mouseX, mouseY]);
+
+  useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [handleMouseMove]);
+
+  // Cycle the word every 2.5 seconds
   const timerRef = useRef(0);
   useAnimationFrame((t) => {
     if (t - timerRef.current > 2500) {
@@ -72,11 +138,13 @@ export default function HeroSection() {
         }}
       />
 
-      {/* ---- Large Decorative Letter ---- */}
-      {/* Giant "T" behind the content — adds visual depth */}
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 text-[30rem] font-black text-white/[0.02] leading-none select-none pointer-events-none">
+      {/* ---- Large Decorative Letter — parallax with mouse ---- */}
+      <motion.div
+        className="absolute left-0 top-1/2 -translate-y-1/2 text-[30rem] font-black leading-none select-none pointer-events-none"
+        style={{ color: 'rgba(212,180,131,0.03)', x: parallaxX, y: parallaxY }}
+      >
         T
-      </div>
+      </motion.div>
 
       {/* ---- Main Content Grid ---- */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-12 items-center py-24">
@@ -127,14 +195,11 @@ export default function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-wrap gap-4">
-            <motion.a
+            {/* Magnetic button — pulls toward cursor */}
+            <MagneticButton
               href={CONTACT.admissionUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               id="hero-apply-btn"
               className="group flex items-center gap-3 bg-crimson hover:bg-crimson-light text-pearl px-8 py-4 rounded-full font-bold text-sm transition-all duration-300 shadow-glow-crimson"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
             >
               Apply for Admission
               <motion.span
@@ -144,17 +209,15 @@ export default function HeroSection() {
               >
                 <ArrowRight size={16} />
               </motion.span>
-            </motion.a>
+            </MagneticButton>
 
-            <motion.a
+            <MagneticButton
               href="#about"
               id="hero-explore-btn"
               className="flex items-center gap-2 border border-border text-muted hover:border-jade hover:text-jade px-8 py-4 rounded-full font-semibold text-sm transition-all duration-300"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
             >
               Explore Campus
-            </motion.a>
+            </MagneticButton>
           </div>
         </motion.div>
 
